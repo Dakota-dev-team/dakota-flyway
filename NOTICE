@@ -1,0 +1,5 @@
+This repository is a fork of the Flyway project by Red Gate Software Ltd.
+Original project: https://github.com/flyway/flyway
+
+Changes made by Matthijs de Wit (dakota-devteam@gmail.com):
+- Added support for BigQuery datasets larger than 10 GB
