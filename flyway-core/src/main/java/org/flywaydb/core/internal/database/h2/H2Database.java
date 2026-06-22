@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-core
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ public class H2Database extends Database<H2Connection> {
     @Override
     public void ensureSupported(Configuration configuration) {
         ensureDatabaseIsRecentEnough("1.2.137");
-        recommendFlywayUpgradeIfNecessary("2.2.224");
+        recommendFlywayUpgradeIfNecessary("2.3.232");
         supportsDropSchemaCascade = getVersion().isAtLeast("1.4.200");
     }
 

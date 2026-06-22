@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-database-hsqldb
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,7 +95,10 @@ public class HSQLDBParser extends Parser {
         if ("BEGIN".equalsIgnoreCase(keywordText)
                 || ((("IF".equalsIgnoreCase(keywordText) && !CONDITIONALLY_CREATABLE_OBJECTS.contains(previousKeywordText))  // excludes the IF in eg. CREATE TABLE IF EXISTS
                 || "FOR".equalsIgnoreCase(keywordText)
-                || "CASE".equalsIgnoreCase(keywordText))
+                || "CASE".equalsIgnoreCase(keywordText)
+                || "WHILE".equalsIgnoreCase(keywordText)
+                || "LOOP".equalsIgnoreCase(keywordText)
+                || "REPEAT".equalsIgnoreCase(keywordText))
                 && previousKeyword != null && !"END".equalsIgnoreCase(previousKeywordText)
                 && !"CURSOR".equalsIgnoreCase(previousKeywordText))) {  // DECLARE CURSOR FOR SELECT ... has no END
             context.increaseBlockDepth(keywordText);

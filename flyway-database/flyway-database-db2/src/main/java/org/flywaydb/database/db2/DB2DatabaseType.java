@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-database-db2
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,14 @@
  */
 package org.flywaydb.database.db2;
 
+import static org.flywaydb.core.internal.util.UrlUtils.isSecretManagerUrl;
+
 import org.flywaydb.core.api.ResourceProvider;
 import org.flywaydb.core.api.configuration.Configuration;
+import org.flywaydb.core.extensibility.Tier;
 import org.flywaydb.core.internal.database.base.Database;
 import org.flywaydb.core.internal.database.base.BaseDatabaseType;
+import org.flywaydb.core.internal.license.FlywayEditionUpgradeRequiredException;
 import org.flywaydb.core.internal.jdbc.JdbcConnectionFactory;
 import org.flywaydb.core.internal.jdbc.StatementInterceptor;
 import org.flywaydb.core.internal.parser.Parser;
@@ -45,7 +49,7 @@ public class DB2DatabaseType extends BaseDatabaseType {
 
     @Override
     public boolean handlesJDBCUrl(String url) {
-        return url.startsWith("jdbc:db2:") || url.startsWith("jdbc:p6spy:db2:");
+        return isSecretManagerUrl(url, "db2") || url.startsWith("jdbc:db2:") || url.startsWith("jdbc:p6spy:db2:");
     }
 
     @Override

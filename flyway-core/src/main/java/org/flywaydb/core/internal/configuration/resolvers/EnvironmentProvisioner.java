@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-core
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,13 +32,17 @@ public interface EnvironmentProvisioner extends Plugin {
         return null;
     }
 
-    default void setConfiguration(final ConfigurationExtension config) { }
+    default void setConfiguration(final ConfigurationExtension config) {}
 
-    default void preProvision(final PropertyResolverContext context, final ProgressLogger progress) { }
+    default void preProvision(final PropertyResolverContext context, final ProgressLogger progress) {}
 
-    default void preReprovision(final PropertyResolverContext context, final ProgressLogger progress) { }
+    default void preReprovision(final PropertyResolverContext context, final ProgressLogger progress) {}
 
-    default void postProvision(final PropertyResolverContext context, final ResolvedEnvironment resolvedEnvironment, final ProgressLogger progress) { }
+    default void postProvision(final PropertyResolverContext context,
+        final ResolvedEnvironment resolvedEnvironment,
+        final ProgressLogger progress) {}
 
-    default void postReprovision(final PropertyResolverContext context, final ResolvedEnvironment resolvedEnvironment, final ProgressLogger progress) { }
+    default void postReprovision(final PropertyResolverContext context,
+        final ResolvedEnvironment resolvedEnvironment,
+        final ProgressLogger progress) {}
 }

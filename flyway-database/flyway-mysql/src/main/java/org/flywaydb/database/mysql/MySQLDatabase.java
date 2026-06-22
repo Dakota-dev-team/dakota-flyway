@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-mysql
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -195,7 +195,7 @@ public class MySQLDatabase extends Database<MySQLConnection> {
                 "    `execution_time` INT NOT NULL,\n" +
                 "    `success` BOOL NOT NULL,\n" +
                 "    CONSTRAINT " + getConstraintName(table.getName()) + " PRIMARY KEY (`installed_rank`)\n" +
-                ")" + tablespace + " ENGINE=InnoDB" +
+                ")" + tablespace +
                 baselineMarker +
                 ";\n" +
                 "CREATE INDEX `" + table.getName() + "_s_idx` ON " + table + " (`success`);";
@@ -261,7 +261,7 @@ public class MySQLDatabase extends Database<MySQLConnection> {
 
 
 
-        recommendFlywayUpgradeIfNecessary("8.1");
+        recommendFlywayUpgradeIfNecessary("9.4");
 
     }
 

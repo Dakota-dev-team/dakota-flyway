@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-core
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,18 +145,6 @@ public class JdbcConnectionFactory implements Closeable {
         if (url == null) {
             return "";
         }
-        return filterUrl(url);
-    }
-
-    /**
-     * Filter out URL parameters to avoid including passwords etc.
-     */
-    static String filterUrl(String url) {
-        int questionMark = url.indexOf("?");
-        if (questionMark >= 0 && !url.contains("?databaseName=")) {
-            url = url.substring(0, questionMark);
-        }
-        url = url.replaceAll("://.*:.*@", "://");
         return url;
     }
 

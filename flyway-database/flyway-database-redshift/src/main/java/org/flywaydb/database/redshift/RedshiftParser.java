@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-database-redshift
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,9 @@ public class RedshiftParser extends Parser {
     private static final Pattern ALTER_TABLE_APPEND_FROM_REGEX = Pattern.compile("^ALTER TABLE( .*)? APPEND FROM");
     private static final Pattern ALTER_TABLE_ALTER_COLUMN_REGEX = Pattern.compile("^ALTER TABLE( .*)? ALTER COLUMN");
 
+     private static final Pattern IDENTITY_PROVIDER_REGEX = Pattern.compile("^(CREATE|ALTER|DROP) IDENTITY PROVIDER");
+
+    
     public RedshiftParser(Configuration configuration, ParsingContext parsingContext) {
         super(configuration, parsingContext, 3);
     }
@@ -48,7 +51,12 @@ public class RedshiftParser extends Parser {
                 || CREATE_EXTERNAL_TABLE_REGEX.matcher(simplifiedStatement).matches()
                 || VACUUM_REGEX.matcher(simplifiedStatement).matches()
                 || ALTER_TABLE_APPEND_FROM_REGEX.matcher(simplifiedStatement).matches()
-                || ALTER_TABLE_ALTER_COLUMN_REGEX.matcher(simplifiedStatement).matches()) {
+                || ALTER_TABLE_ALTER_COLUMN_REGEX.matcher(simplifiedStatement).matches()
+
+                || IDENTITY_PROVIDER_REGEX.matcher(simplifiedStatement).matches()
+
+        )
+        {
             return false;
         }
 

@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-core
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class DbSchemas {
     /**
      * The callback executor.
      */
-    private final CallbackExecutor callbackExecutor;
+    private final CallbackExecutor<Event> callbackExecutor;
 
     /**
      * Creates a new DbSchemas.
@@ -84,6 +84,7 @@ public class DbSchemas {
      */
     public void create(final boolean baseline) {
         callbackExecutor.onEvent(Event.CREATE_SCHEMA);
+        callbackExecutor.onEvent(Event.BEFORE_CREATE_SCHEMA);
         int retries = 0;
         while (true) {
             try {
@@ -105,7 +106,7 @@ public class DbSchemas {
 
                     if (!createdSchemas.isEmpty()) {
                         schemaHistory.create(baseline);
-                        schemaHistory.addSchemasMarker(createdSchemas.toArray(new Schema[0]));
+                        schemaHistory.addSchemasMarker(createdSchemas.toArray(Schema[]::new));
                     }
 
                     return null;

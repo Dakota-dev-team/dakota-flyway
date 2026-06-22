@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-core
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,13 @@
  */
 package org.flywaydb.core.internal.configuration.models;
 
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import java.util.HashMap;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.ExtensionMethod;
+import org.flywaydb.core.internal.util.ClassUtils;
 import org.flywaydb.core.internal.util.MergeUtils;
 
 import java.util.ArrayList;
@@ -38,14 +41,19 @@ public class EnvironmentModel {
     private String user;
     private String password;
     private String driver;
+    private String displayName;
     private List<String> schemas = new ArrayList<>();
     private Integer connectRetries;
     private Integer connectRetriesInterval;
     private String initSql;
-    private Map<String, String> jdbcProperties;
+    private Map<String, String> jdbcProperties = new HashMap<>();
     private Map<String, Map<String, Object>> resolvers;
     private String provisioner;
     private FlywayEnvironmentModel flyway = new FlywayEnvironmentModel();
+
+    @JsonAnySetter
+    @Getter(onMethod = @__(@ClassUtils.DoNotMapForLogging))
+    private Map<String,Object> unknownConfigurations = new HashMap<>();
 
     public EnvironmentModel merge(EnvironmentModel otherPojo) {
         EnvironmentModel result = new EnvironmentModel();
@@ -53,6 +61,7 @@ public class EnvironmentModel {
         result.user = MergeUtils.merge(user, otherPojo.user);
         result.password = MergeUtils.merge(password, otherPojo.password);
         result.driver = MergeUtils.merge(driver, otherPojo.driver);
+        result.displayName = MergeUtils.merge(displayName, otherPojo.displayName);
         result.schemas = MergeUtils.merge(schemas, otherPojo.schemas);
         result.connectRetries = MergeUtils.merge(connectRetries, otherPojo.connectRetries);
         result.connectRetriesInterval = MergeUtils.merge(connectRetriesInterval, otherPojo.connectRetriesInterval);
@@ -61,6 +70,7 @@ public class EnvironmentModel {
         result.resolvers = MergeUtils.merge(resolvers, otherPojo.resolvers, EnvironmentModel::MergeResolvers);
         result.provisioner = MergeUtils.merge(provisioner, otherPojo.provisioner);
         result.flyway = flyway.merge(otherPojo.flyway);
+        result.unknownConfigurations = MergeUtils.merge(unknownConfigurations, otherPojo.unknownConfigurations, MergeUtils::mergeObjects);
         return result;
     }
 

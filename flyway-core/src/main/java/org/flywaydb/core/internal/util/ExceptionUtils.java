@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-core
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,15 @@
  */
 package org.flywaydb.core.internal.util;
 
+import java.sql.SQLException;
 import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-
-import java.sql.SQLException;
 import org.flywaydb.core.api.FlywayException;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ExceptionUtils {
+    public static final String CONTACT_EMAIL = "DatabaseDevOps@red-gate.com";
     /**
      * @return The root cause or the throwable itself if it doesn't have a cause.
      */
@@ -87,5 +87,16 @@ public class ExceptionUtils {
             exception = exception.getCause();
         }
         return Optional.empty();
+    }
+
+    public static boolean exceptionHasCauseOf(final Throwable exception, final Class<?> cause) {
+        Throwable throwable = exception;
+        while (throwable != null) {
+            if (cause.isInstance(throwable)) {
+                return true;
+            }
+            throwable = throwable.getCause();
+        }
+        return false;
     }
 }

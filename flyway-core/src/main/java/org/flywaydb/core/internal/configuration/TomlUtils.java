@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-core
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,19 @@
  */
 package org.flywaydb.core.internal.configuration;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.MapperBuilder;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.dataformat.toml.TomlStreamReadException;
+import java.util.Map.Entry;
 import lombok.CustomLog;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.configuration.ClassicConfiguration;
 import org.flywaydb.core.internal.configuration.models.ConfigurationModel;
 import org.flywaydb.core.internal.configuration.models.EnvironmentModel;
+import org.flywaydb.core.internal.util.FileUtils;
 import org.flywaydb.core.internal.util.ObjectMapperFactory;
 import org.flywaydb.core.internal.util.Pair;
 
@@ -43,7 +47,7 @@ import java.util.stream.Collectors;
 @CustomLog
 public class TomlUtils {
 
-    public static final String MSG = "Using both new Environment variable %1$s and old Environment variable %2$s. Please remove %2$s.";
+    private static final String MSG = "Using both new Environment variable %1$s and old Environment variable %2$s. Please remove %2$s.";
 
     public static ConfigurationModel loadConfigurationFromEnvironment() {
         Map<String, String> environmentVariables = System.getenv()
@@ -77,7 +81,7 @@ public class TomlUtils {
                                                                                    }))
                                                          .entrySet()
                                                          .stream()
-                                                         .collect(Collectors.toMap(Map.Entry::getKey, v -> v.getValue().getRight()));
+                                                         .collect(Collectors.toMap(Entry::getKey, v -> v.getValue().getRight()));
         return toConfiguration(unflattenMap(environmentVariables));
     }
 
@@ -93,9 +97,9 @@ public class TomlUtils {
 
         //noinspection unchecked
         simpleModule.addDeserializer((Class<List<String>>) type.getRawClass(), new ListDeserializer());
-        objectMapper.registerModule(simpleModule);
         try {
-            return objectMapper.convertValue(properties, ConfigurationModel.class);
+            return objectMapper.rebuild().addModule(simpleModule).build()
+                .convertValue(properties, ConfigurationModel.class);
         } catch (IllegalArgumentException e) {
             throw new FlywayException("Unable to parse command line params.");
         }
@@ -103,7 +107,7 @@ public class TomlUtils {
 
     public static Map<String, Object> unflattenMap(Map<String, String> map) {
         Map<String, Object> result = new HashMap<>();
-        for (Map.Entry<String, String> entry : map.entrySet()) {
+        for (Entry<String, String> entry : map.entrySet()) {
             String[] parts = entry.getKey().split("\\.");
             Map<String, Object> currentMap = result;
             for (int i = 0; i < parts.length; i++) {
@@ -126,16 +130,45 @@ public class TomlUtils {
                     .reduce(defaultConfig, ConfigurationModel::merge);
     }
 
-    static ConfigurationModel loadConfigurationFile(File configFile) {
+    static ConfigurationModel loadConfigurationFile(final File configFile) {
         try {
-            ConfigurationModel tomlConfig = ObjectMapperFactory.getObjectMapper(configFile.toString())
+            final String configText = FileUtils.readFileAsString(configFile);
+            final ConfigurationModel tomlConfig = ObjectMapperFactory.getObjectMapper(configFile.toString())
+                .rebuild()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .build()
                 .readerFor(ConfigurationModel.class)
-                .readValue(configFile);
+                .readValue(configText);
             ConfigUtils.dumpConfigurationModel(tomlConfig, "Loading config file: " + configFile.getAbsolutePath());
             return tomlConfig;
-        } catch (IOException e) {
+        } catch (final TomlStreamReadException tomlread) {
+            final String line = FileUtils.readLine(configFile, tomlread.getLocation().getLineNr());
+            final StringBuilder highlight = new StringBuilder(line);
+            highlight.insert(tomlread.getLocation().getColumnNr() - 1, "^");
+            final String message = "Error parsing config file at [line "
+                + tomlread.getLocation().getLineNr()
+                + ", column "
+                + tomlread.getLocation().getColumnNr()
+                + "]"
+                + getErrorCause(tomlread.getOriginalMessage())
+                + ", syntax error shown by ^: "
+                + highlight
+                + "\n\tin "
+                + configFile.getAbsolutePath();
+            //noinspection ThrowInsideCatchBlockWhichIgnoresCaughtException
+            throw new FlywayException(message);
+        } catch (final IOException e) {
             throw new FlywayException("Unable to load config file: " + configFile.getAbsolutePath(), e);
         }
+    }
+
+    private static String getErrorCause(final String errorMessage) {
+        final StringBuilder message = new StringBuilder()
+            .append(" caused by: ");
+        return switch (errorMessage) {
+            case "Duplicate key", "Unknown token" -> message.append(errorMessage).toString();
+            case "Table redefined" -> message.append("Duplicate table").toString();
+            default -> "";
+        };
     }
 }

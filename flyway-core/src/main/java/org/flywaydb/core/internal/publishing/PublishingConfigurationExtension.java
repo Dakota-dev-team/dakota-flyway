@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-core
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,9 @@ import org.flywaydb.core.extensibility.ConfigurationExtension;
 @Setter
 public class PublishingConfigurationExtension implements ConfigurationExtension {
     private static final String FLYWAY_PUBLISH_RESULT = "flyway.publishResult";
+    private static final String FLYWAY_CHECK_DRIFT_ON_MIGRATE = "flyway.checkDriftOnMigrate";
     private boolean publishResult = false;
+    private boolean checkDriftOnMigrate = false;
 
     @Override
     public String getNamespace() {
@@ -38,6 +40,9 @@ public class PublishingConfigurationExtension implements ConfigurationExtension 
     public String getConfigurationParameterFromEnvironmentVariable(final String environmentVariable) {
         if ("FLYWAY_PUBLISH_RESULT".equals(environmentVariable)) {
             return FLYWAY_PUBLISH_RESULT;
+        }
+        if ("FLYWAY_CHECK_DRIFT_ON_MIGRATE".equals(environmentVariable)) {
+            return FLYWAY_CHECK_DRIFT_ON_MIGRATE;
         }
         return null;
     }

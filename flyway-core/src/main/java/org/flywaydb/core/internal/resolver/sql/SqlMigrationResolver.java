@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-core
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.flywaydb.core.api.resource.Resource;
 import org.flywaydb.core.extensibility.LicenseGuard;
 import org.flywaydb.core.extensibility.Tier;
 import org.flywaydb.core.internal.parser.ParsingContext;
-import org.flywaydb.core.internal.parser.PlaceholderReplacingReader;
 import org.flywaydb.core.internal.resolver.ChecksumCalculator;
 import org.flywaydb.core.internal.resolver.ResolvedMigrationComparator;
 import org.flywaydb.core.internal.resolver.ResolvedMigrationImpl;
@@ -41,7 +40,6 @@ import org.flywaydb.core.internal.sqlscript.SqlScript;
 import org.flywaydb.core.internal.sqlscript.SqlScriptExecutorFactory;
 import org.flywaydb.core.internal.sqlscript.SqlScriptFactory;
 
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
@@ -82,32 +80,12 @@ public class SqlMigrationResolver implements MigrationResolver {
     }
 
     private LoadableResource[] createPlaceholderReplacingLoadableResources(List<LoadableResource> loadableResources) {
-        List<LoadableResource> list = new ArrayList<>();
-
-        for (final LoadableResource loadableResource : loadableResources) {
-            LoadableResource placeholderReplacingLoadableResource = new LoadableResource() {
-                @Override
-                public Reader read() {
-                    return PlaceholderReplacingReader.create(configuration, parsingContext, loadableResource.read());
-                }
-
-                @Override
-                public String getAbsolutePath() {return loadableResource.getAbsolutePath();}
-
-                @Override
-                public String getAbsolutePathOnDisk() {return loadableResource.getAbsolutePathOnDisk();}
-
-                @Override
-                public String getFilename() {return loadableResource.getFilename();}
-
-                @Override
-                public String getRelativePath() {return loadableResource.getRelativePath();}
-            };
-
-            list.add(placeholderReplacingLoadableResource);
-        }
-
-        return list.toArray(new LoadableResource[0]);
+        return loadableResources.stream()
+            .map(loadableResource -> LoadableResource.createPlaceholderReplacingLoadableResource(
+                loadableResource,
+                configuration,
+                parsingContext))
+            .toArray(LoadableResource[]::new);
     }
 
     private Integer getChecksumForLoadableResource(boolean repeatable, List<LoadableResource> loadableResources, ResourceName resourceName, boolean placeholderReplacement) {
@@ -116,12 +94,12 @@ public class SqlMigrationResolver implements MigrationResolver {
             return ChecksumCalculator.calculate(createPlaceholderReplacingLoadableResources(loadableResources));
         }
 
-        return ChecksumCalculator.calculate(loadableResources.toArray(new LoadableResource[0]));
+        return ChecksumCalculator.calculate(loadableResources.toArray(LoadableResource[]::new));
     }
 
     private Integer getEquivalentChecksumForLoadableResource(boolean repeatable, List<LoadableResource> loadableResources) {
         if (repeatable) {
-            return ChecksumCalculator.calculate(loadableResources.toArray(new LoadableResource[0]));
+            return ChecksumCalculator.calculate(loadableResources.toArray(LoadableResource[]::new));
         }
 
         return null;
@@ -142,18 +120,17 @@ public class SqlMigrationResolver implements MigrationResolver {
             List<LoadableResource> resources = new ArrayList<>();
             resources.add(resource);
 
-
-
-
-
-
-
-
-
-
-
-
-
+            if (sqlScript.includeReferencedScriptsInChecksum()) {
+                SortedSet<LoadableResource> referencedResources = new TreeSet<>();
+                for (SqlScript referencedSqlScript : sqlScript.getReferencedSqlScripts()) {
+                    referencedResources.add(referencedSqlScript.getResource());
+                }
+                if (!referencedResources.isEmpty()) {
+                    LOG.debug("Calculating checksum for '" + filename + "' using the following referenced scripts: " +
+                                      referencedResources.stream().map(Resource::getFilename).collect(Collectors.joining(",")));
+                }
+                resources.addAll(referencedResources);
+            }
 
             Integer checksum = getChecksumForLoadableResource(repeatable, resources, resourceName, sqlScript.placeholderReplacement());
             Integer equivalentChecksum = getEquivalentChecksumForLoadableResource(repeatable, resources);

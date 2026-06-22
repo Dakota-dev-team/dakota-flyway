@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-commandline
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,6 +116,9 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
             return true;
         } else {
             if (!legacyConfigFiles.isEmpty()) {
+                LOG.debug("Using legacy configuration as CONF files detected on disk or specified in commandline or environment variables: " + legacyConfigFiles.stream()
+                    .map(File::getAbsolutePath)
+                    .collect(Collectors.joining(", ")) + System.lineSeparator());
                 return false;
             }
         }

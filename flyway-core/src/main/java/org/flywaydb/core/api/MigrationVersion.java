@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-core
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,12 @@ public final class MigrationVersion implements Comparable<MigrationVersion> {
     private final String rawVersion;
 
     /**
+     * Is this version an internal predefined version?
+     */
+    @Getter
+    private boolean predefined;
+
+    /**
      * Create a MigrationVersion from a version String.
      *
      * @param version The version String. The value {@code current} will be interpreted as MigrationVersion.CURRENT,
@@ -110,6 +116,7 @@ public final class MigrationVersion implements Comparable<MigrationVersion> {
         this.versionParts.add(version);
         this.displayText = displayText;
         this.rawVersion = displayText;
+        this.predefined = true;
     }
 
     @Override
@@ -261,6 +268,10 @@ public final class MigrationVersion implements Comparable<MigrationVersion> {
 
         if (o == CURRENT) {
             return 1;
+        }
+
+        if (o == NEXT) {
+            return -1;
         }
 
         if (o == LATEST) {

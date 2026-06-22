@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-core
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,7 @@
 package org.flywaydb.core.internal.command;
 
 import lombok.CustomLog;
-import lombok.Getter;
 import org.flywaydb.core.ProgressLogger;
-import org.flywaydb.core.api.CoreErrorCode;
-import org.flywaydb.core.api.ErrorCode;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.MigrationInfo;
 import org.flywaydb.core.api.MigrationState;
@@ -32,13 +29,13 @@ import org.flywaydb.core.api.callback.Event;
 import org.flywaydb.core.api.configuration.Configuration;
 import org.flywaydb.core.api.executor.Context;
 import org.flywaydb.core.api.output.CommandResultFactory;
-import org.flywaydb.core.api.output.MigrateErrorResult;
 import org.flywaydb.core.api.output.MigrateResult;
 import org.flywaydb.core.api.resolver.ResolvedMigration;
 import org.flywaydb.core.internal.callback.CallbackExecutor;
 import org.flywaydb.core.internal.database.base.Connection;
 import org.flywaydb.core.internal.database.base.Database;
 import org.flywaydb.core.internal.database.base.Schema;
+import org.flywaydb.core.internal.exception.FlywayMigrateException;
 import org.flywaydb.core.internal.info.MigrationInfoImpl;
 import org.flywaydb.core.internal.info.MigrationInfoServiceImpl;
 import org.flywaydb.core.internal.jdbc.ExecutionTemplateFactory;
@@ -60,7 +57,7 @@ public class DbMigrate {
     private final Schema schema;
     private final CompositeMigrationResolver migrationResolver;
     private final Configuration configuration;
-    private final CallbackExecutor callbackExecutor;
+    private final CallbackExecutor<Event> callbackExecutor;
     /**
      * The connection to use to perform the actual database migrations.
      */
@@ -182,7 +179,7 @@ public class DbMigrate {
     private Integer migrateGroup(boolean firstRun) {
         MigrationInfoServiceImpl infoService =
                 new MigrationInfoServiceImpl(migrationResolver, schemaHistory, database, configuration,
-                                             configuration.getTarget(), configuration.isOutOfOrder(), ValidatePatternUtils.getIgnoreAllPattern(), configuration.getCherryPick());
+                                             configuration.getTarget(), configuration.isOutOfOrder(), ValidatePatternUtils.getIgnoreAllPattern());
         infoService.refresh();
 
         MigrationInfo current = infoService.current();
@@ -440,45 +437,5 @@ public class DbMigrate {
 
     private String doQuote(String text) {
         return "\"" + text + "\"";
-    }
-
-    @Getter
-    public static class FlywayMigrateException extends FlywayException {
-        private final MigrationInfo migration;
-        private final boolean executableInTransaction;
-        private final boolean outOfOrder;
-        private final MigrateErrorResult errorResult;
-
-        public ErrorCode getMigrationErrorCode() {
-            if (migration.getVersion() != null) {
-                return CoreErrorCode.FAILED_VERSIONED_MIGRATION;
-            } else {
-                return CoreErrorCode.FAILED_REPEATABLE_MIGRATION;
-            }
-        }
-
-        FlywayMigrateException(MigrationInfo migration, boolean outOfOrder, SQLException e, boolean canExecuteInTransaction, MigrateResult partialResult) {
-            super(ExceptionUtils.toMessage(e), e);
-            this.migration = migration;
-            this.outOfOrder = outOfOrder;
-            this.executableInTransaction = canExecuteInTransaction;
-            this.errorResult = new MigrateErrorResult(partialResult, this);
-        }
-
-        FlywayMigrateException(MigrationInfo migration, String message, boolean canExecuteInTransaction, MigrateResult partialResult) {
-            super(message);
-            this.outOfOrder = false;
-            this.migration = migration;
-            this.executableInTransaction = canExecuteInTransaction;
-            this.errorResult = new MigrateErrorResult(partialResult, this);
-        }
-
-        FlywayMigrateException(MigrationInfo migration, boolean outOfOrder, FlywayException e, boolean canExecuteInTransaction, MigrateResult partialResult) {
-            super(e.getMessage(), e);
-            this.migration = migration;
-            this.outOfOrder = outOfOrder;
-            this.executableInTransaction = canExecuteInTransaction;
-            this.errorResult = new MigrateErrorResult(partialResult, this);
-        }
     }
 }

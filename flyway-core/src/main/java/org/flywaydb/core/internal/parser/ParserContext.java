@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-core
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public class ParserContext {
 
     public void decreaseBlockDepth() {
         if (blockDepth == 0) {
-            throw new FlywayException("Flyway parsing bug: unable to decrease block depth below 0");
+            throw new FlywayException("Parsing failed: unable to decrease block depth below 0");
         }
         blockDepth--;
         lastClosedBlockInitiator = blockInitiators.pop();

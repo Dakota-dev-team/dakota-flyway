@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * flyway-core
  * ========================================================================
- * Copyright (C) 2010 - 2024 Red Gate Software Ltd
+ * Copyright (C) 2010 - 2026 Red Gate Software Ltd
  * ========================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import lombok.Getter;
  * The Flyway lifecycle events that can be handled in callbacks.
  */
 @RequiredArgsConstructor
-public enum Event {
+public enum Event implements CallbackEvent<Event> {
     /**
      * Fired before clean is executed. This event will be fired in a separate transaction from the actual clean operation.
      */
@@ -227,14 +227,19 @@ public enum Event {
      */
     AFTER_BASELINE_OPERATION_FINISH("afterInfoOperationFinish"),
     /**
-     * Fired before any non-existent schemas are created.
+     * Deprecated. Fired before any non-existent schemas are created.
      */
     CREATE_SCHEMA("createSchema"),
+    /**
+     * Fired before any non-existent schemas are created.
+     */
+    BEFORE_CREATE_SCHEMA("beforeCreateSchema"),
     /**
      * Fired before a connection is created. These must be arbitrary scripts only (e.g. ps1, cmd, sh etc.)
      * <p><i>Flyway Teams Edition only</i></p>
      */
-    BEFORE_CONNECT("beforeConnect");
+    BEFORE_CONNECT("beforeConnect"),
+    AFTER_CONNECT("afterConnect");
 
     /**
      * @return The id of an event. Examples: {@code beforeClean}, {@code afterEachMigrate}, ...
@@ -248,8 +253,8 @@ public enum Event {
      * @param id The id.
      * @return The event. {@code null} if not found.
      */
-    public static Event fromId(String id) {
-        for (Event event : values()) {
+    public static Event fromId(final String id) {
+        for (final Event event : values()) {
             if (event.id.equals(id)) {
                 return event;
             }
